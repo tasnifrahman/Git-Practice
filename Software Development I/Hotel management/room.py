@@ -77,8 +77,15 @@ class Roombooking:
         lable_RoomType=Label(labelframeleft, font=("arial", 12, "bold"), text="Room Type:", padx=2, pady=6)
         lable_RoomType.grid(row=3, column=0,sticky=W)
 
+
+        #database create
+        conn=mysql.connector.connect(host="localhost", username="root", password="123456tasnif", database="management")
+        my_cursor=conn.cursor()
+        my_cursor.execute("select RoomType from details")
+        ide=my_cursor.fetchall()
+
         combo_RoomType=ttk.Combobox(labelframeleft, textvariable=self.var_roomtype,font=("arial", 12, "bold"), width=27, state="readonly")
-        combo_RoomType["value"]=("Single", "Double", "Laxary")
+        combo_RoomType["value"]=ide
         combo_RoomType.current(0)
         combo_RoomType.grid(row=3, column=1)
 
@@ -86,8 +93,20 @@ class Roombooking:
         #Available Room
         lblRoomAvailable=Label(labelframeleft, font=("arial", 12, "bold"), text="Available Room:", padx=2, pady=6)
         lblRoomAvailable.grid(row=4, column=0, sticky=W)
-        txtRoomAvailable=ttk.Entry(labelframeleft, textvariable=self.var_roomavailable, width=29, font=("times new roman",13,"bold"))
-        txtRoomAvailable.grid(row=4, column=1)
+        #txtRoomAvailable=ttk.Entry(labelframeleft, textvariable=self.var_roomavailable, #width=29, font=("times new roman",13,"bold"))
+        #txtRoomAvailable.grid(row=4, column=1)
+
+
+        #database create
+        conn=mysql.connector.connect(host="localhost", username="root", password="123456tasnif", database="management")
+        my_cursor=conn.cursor()
+        my_cursor.execute("select RoomNo from details")
+        rows=my_cursor.fetchall()
+
+        combo_RoomNo=ttk.Combobox(labelframeleft, textvariable=self.var_roomavailable,font=("arial", 12, "bold"), width=27, state="readonly")
+        combo_RoomNo["value"]=rows
+        combo_RoomNo.current(0)
+        combo_RoomNo.grid(row=4, column=1)
 
 
         #Meal
@@ -199,7 +218,7 @@ class Roombooking:
         self.room_table.heading("contact", text="Contact")
         self.room_table.heading("checkin", text="Check-in")
         self.room_table.heading("checkout", text="Check-out")
-        self.room_table.heading("roomtype", text="Room Tpe")
+        self.room_table.heading("roomtype", text="Room Type")
         self.room_table.heading("roomavailable", text="Room No")
         self.room_table.heading("meal", text="Meal")
         self.room_table.heading("noOfdays", text="NoOfDays")
@@ -296,7 +315,7 @@ class Roombooking:
             messagebox.showinfo("Update", "Room details has been updated successfully", parent=self.root)
 
 
-    #deleta function
+    #delete function
     def mDelete(self):
         mDelete=messagebox.askyesno("Hotel Management System", "Do you want to delete this customer", parent=self.root)
         if mDelete>0:
@@ -444,6 +463,17 @@ class Roombooking:
         elif(self.var_meal.get()=="Lunch" and self.var_roomtype.get()=="Single"):
             q1=float(300)
             q2=float(500)
+            q3=float(self.var_noofdays.get())
+            q4=float(q1+q2)
+            q5=float(q3+q4)
+            Tax="Tk."+str("%.2f"%((q5)*0.09))
+            TT="Tk."+str("%.2f"%(q5+((q5)*0.09)))
+            self.var_paidtax.set(Tax)
+            self.var_total.set(TT)
+
+        elif(self.var_meal.get()=="Breakfast" and self.var_roomtype.get()=="Double"):
+            q1=float(500)
+            q2=float(700)
             q3=float(self.var_noofdays.get())
             q4=float(q1+q2)
             q5=float(q3+q4)

@@ -2,6 +2,7 @@ from tkinter import*
 from PIL import Image, ImageTk #pip install pillow
 from customer import Cust_Win
 from room import Roombooking
+from details import DetailsRoom
 
 
 class HotelManagementSystem:
@@ -51,13 +52,13 @@ class HotelManagementSystem:
         room_btn=Button(btn_frame, text="ROOM", command=self.roombooking,width=22, font=("times new roman", 14, "bold"), bg="black", fg="gold", bd=0, cursor="hand1")
         room_btn.grid(row=1, column=0, pady=1)
 
-        details_btn=Button(btn_frame, text="DETAILS", width=22, font=("times new roman", 14, "bold"), bg="black", fg="gold", bd=0, cursor="hand1")
+        details_btn=Button(btn_frame, text="DETAILS", command=self.details_room,width=22, font=("times new roman", 14, "bold"), bg="black", fg="gold", bd=0, cursor="hand1")
         details_btn.grid(row=2, column=0, pady=1)
 
         report_btn=Button(btn_frame, text="REPORT", width=22, font=("times new roman", 14, "bold"), bg="black", fg="gold", bd=0, cursor="hand1")
         report_btn.grid(row=3, column=0, pady=1)
 
-        logout_btn=Button(btn_frame, text="LOGOUT", width=22, font=("times new roman", 14, "bold"), bg="black", fg="gold", bd=0, cursor="hand1")
+        logout_btn=Button(btn_frame, text="LOGOUT", command=self.logout,width=22, font=("times new roman", 14, "bold"), bg="black", fg="gold", bd=0, cursor="hand1")
         logout_btn.grid(row=4, column=0, pady=1)
 
 
@@ -96,6 +97,18 @@ class HotelManagementSystem:
     def roombooking(self):
         self.new_window=Toplevel(self.root)
         self.app=Roombooking(self.new_window)
+
+
+
+    def details_room(self):
+        self.new_window=Toplevel(self.root)
+        self.app=DetailsRoom(self.new_window)
+
+
+    def logout(self):
+        self.root.destroy()
+
+    
     
 
 
