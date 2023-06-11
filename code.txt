@@ -1,0 +1,260 @@
+#include <Servo.h>
+Servo servoMain; // Define our Servo
+int trigpin = 10;
+int echopin = 11;
+int distance;
+float duration;
+float cm;
+void setup(){
+servoMain.attach(9); 
+pinMode(trigpin, OUTPUT);
+pinMode(echopin, INPUT);
+}
+void loop()
+{
+digitalWrite(trigpin, LOW);
+delay(2);
+digitalWrite(trigpin, HIGH);
+delayMicroseconds(10);
+digitalWrite(trigpin, LOW);
+duration = pulseIn(echopin, HIGH);
+cm = (duration/58.82);
+distance = cm;
+if(distance<30)
+{
+servoMain.write(180); 
+delay(2000);
+}
+else{
+servoMain.write(40);
+delay(50);
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include <Servo.h>
+Servo servoMain; 
+int trigpin = 10;
+int echopin = 9;
+int distance;
+float duration;
+float cm;
+
+const int buzzerPin = 11;
+const int fireSensorPin = 12;
+                                   
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(buzzerPin, OUTPUT); 
+  pinMode(fireSensorPin, INPUT);
+  
+  servoMain.attach(8); 
+  pinMode(trigpin, OUTPUT);
+  pinMode(echopin, INPUT);    
+
+}
+
+  
+void loop()
+{
+  int fireValue = digitalRead(fireSensorPin);
+  Serial.println(fireValue);
+
+  if(fireValue == 0)
+  {
+    digitalWrite(buzzerPin, HIGH);
+    delay(1000);
+    digitalWrite(buzzerPin, LOW); 
+  }
+  else
+  {
+    digitalWrite(buzzerPin, LOW);
+  }  
+  delay(500);
+
+  //code for ultrasonic and servo
+  digitalWrite(trigpin, LOW);
+  delay(2);
+  digitalWrite(trigpin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigpin, LOW);
+  duration = pulseIn(echopin, HIGH);
+  cm = (duration/58.82);
+  distance = cm;
+  Serial.println(distance);
+  
+  if(distance<30)
+  {
+    servoMain.write(180); 
+    delay(2000);
+  }
+
+  else
+  {
+    servoMain.write(0);
+    delay(50);
+  }  
+
+ 
+}
+
+
+
+
+
+
+
+
+**************last updated project*****************
+
+
+#include <Servo.h>
+Servo servoMain; 
+int trigpin = 10;
+int echopin = 9;
+
+int trigpin2 = 6;
+int echopin2 = 5;
+
+int distance;
+int distance2;
+
+float duration2;
+float duration;
+
+float cm;
+float cm2;
+
+const int buzzerPin = 11;
+const int lightPin=3;
+const int fireSensorPin = 12;
+const int fireSensorPin2 = 4;
+                                   
+void setup()
+{
+  Serial.begin(9600);
+  servoMain.attach(8);
+  
+  pinMode(buzzerPin, OUTPUT); 
+  pinMode(fireSensorPin, INPUT);
+  pinMode(fireSensorPin2, INPUT); 
+  pinMode(lightPin, OUTPUT); 
+   
+  pinMode(trigpin, OUTPUT);
+  pinMode(echopin, INPUT); 
+
+  pinMode(trigpin2, OUTPUT);
+  pinMode(echopin2, INPUT);    
+
+}
+
+  
+void loop()
+{
+  //fire sensor section
+  int fireValue = digitalRead(fireSensorPin);
+  int fireValue2 = digitalRead(fireSensorPin2);  
+  //Serial.println(fireValue);
+
+
+
+  digitalWrite(trigpin2, LOW);
+  delay(2);
+  digitalWrite(trigpin2, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigpin2, LOW);
+  duration2 = pulseIn(echopin2, HIGH);
+  cm2 = (duration2/58.82);
+  distance2 = cm2;
+
+
+
+  Serial.println(distance2);
+  
+  if(distance2<30)
+  {
+    if(fireValue == 0)
+    {
+      digitalWrite(buzzerPin, LOW);              
+    }
+  }
+  
+  if(distance2>30)
+  {  
+    if(fireValue == 0)
+    {
+      digitalWrite(buzzerPin, HIGH);
+      delay(1000);
+      digitalWrite(buzzerPin, LOW); 
+    }
+    else
+    {
+      digitalWrite(buzzerPin, LOW);
+    }  
+  }
+  delay(500);
+
+
+
+
+
+  //code for light section
+
+  if(fireValue2 == 0)
+  {
+    digitalWrite(lightPin, LOW);              
+  }
+  else 
+  {
+    digitalWrite(lightPin, HIGH);
+  }
+
+
+
+
+  
+
+  //code for ultrasonic and servo
+  digitalWrite(trigpin, LOW);
+  delay(2);
+  digitalWrite(trigpin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigpin, LOW);
+  duration = pulseIn(echopin, HIGH);
+  cm = (duration/58.82);
+  distance = cm;
+  Serial.println(distance);
+  
+  if(distance<30)
+  {
+    servoMain.write(180); 
+    delay(2000);
+  }
+
+  else
+  {
+    servoMain.write(0);
+    delay(50);
+  }  
+
+ 
+}
