@@ -1,0 +1,668 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Alarm Settings Example',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: AlarmScreen(),
+    );
+  }
+}
+
+class Alarm {
+  DateTime time;
+  String note;
+  int id;
+
+  Alarm(this.time, this.note, this.id);
+}
+
+class AlarmScreen extends StatefulWidget {
+  @override
+  _AlarmScreenState createState() => _AlarmScreenState();
+}
+
+class _AlarmScreenState extends State<AlarmScreen> {
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
+  List<Alarm> alarms = [];
+  TextEditingController noteController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    initializeNotifications();
+  }
+
+  void initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    final InitializationSettings initializationSettings =
+    InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  Future<void> scheduleAlarm(Alarm alarm) async {
+    final String title = 'Alarm Title';
+    final String body = 'Alarm Body';
+
+    tz.initializeTimeZones();
+    final String timeZoneName = tz.local.name;
+    final tz.Location timeZone = tz.getLocation(timeZoneName);
+
+    final tz.TZDateTime scheduledTime =
+    tz.TZDateTime.from(alarm.time, timeZone);
+
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+      'channel_id',
+      'channel_name',
+      importance: Importance.high,
+      priority: Priority.high,
+      playSound: true,
+    );
+
+    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      alarm.id,
+      title,
+      body,
+      scheduledTime,
+      platformChannelSpecifics,
+      uiLocalNotificationDateInterpretation:
+      UILocalNotificationDateInterpretation.absoluteTime,
+      payload: 'notification_payload',
+      androidAllowWhileIdle: true,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Alarm Settings'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                final now = DateTime.now();
+                final selectedTime = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.fromDateTime(now),
+                );
+
+                if (selectedTime != null) {
+                  final selectedAlarmTime = DateTime(
+                    now.year,
+                    now.month,
+                    now.day,
+                    selectedTime.hour,
+                    selectedTime.minute,
+                  );
+
+                  // Show a dialog to input a note
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      noteController.clear(); // Clear the text field
+                      return AlertDialog(
+                        title: Text('Enter Note'),
+                        content: TextField(
+                          controller: noteController,
+                          decoration: InputDecoration(
+                            hintText: 'Enter your note',
+                          ),
+                        ),
+                        actions: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text('Cancel'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              final alarm = Alarm(
+                                selectedAlarmTime,
+                                noteController.text,
+                                selectedAlarmTime.microsecondsSinceEpoch,
+                              );
+                              alarms.add(alarm);
+                              scheduleAlarm(alarm);
+                              setState(() {});
+                            },
+                            child: Text('Set Alarm'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              },
+              child: Text('Set Alarm'),
+            ),
+            SizedBox(height: 20),
+            Column(
+              children: alarms.map((alarm) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(8),
+                        color: Colors.blue,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Alarm Time: ${alarm.time.hour}:${alarm.time.minute}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              'Note: ${alarm.note}',
+                              style: TextStyle(fontSize: 16, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.red, // Set the button color to red
+                          ),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Alarm'),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text('Note: ${alarm.note}'),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          cancelAlarm(alarm.id);
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text('Dismiss Alarm'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          child: Text('Dismiss Alarm'),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> cancelAlarm(int id) async {
+    await flutterLocalNotificationsPlugin.cancel(id);
+    alarms.removeWhere((alarm) => alarm.id == id);
+    setState(() {});
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+main.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'world_clock_page.dart';
+import 'dismiss_alarm_dialog.dart';
+import 'alarm_model.dart'; // Import the Alarm class
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData darkTheme = ThemeData.dark().copyWith(
+      primaryColor: Colors.blue,
+      // Define other dark theme properties here
+    );
+
+    return MaterialApp(
+      title: 'Alarm App',
+      theme: darkTheme,
+      home: AlarmScreen(),
+    );
+  }
+}
+
+class AlarmScreen extends StatefulWidget {
+  @override
+  _AlarmScreenState createState() => _AlarmScreenState();
+}
+
+class _AlarmScreenState extends State<AlarmScreen> {
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
+  List<Alarm> alarms = [];
+  TextEditingController noteController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    initializeNotifications();
+  }
+
+  void initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    final InitializationSettings initializationSettings =
+    InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  Future<void> scheduleAlarm(Alarm alarm) async {
+    final String title = 'Alarm Title';
+    final String body = 'Alarm Body';
+
+    tz.initializeTimeZones();
+    final String timeZoneName = tz.local.name;
+    final tz.Location timeZone = tz.getLocation(timeZoneName);
+
+    final tz.TZDateTime scheduledTime =
+    tz.TZDateTime.from(alarm.time, timeZone);
+
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+      'channel_id',
+      'channel_name',
+      importance: Importance.high,
+      priority: Priority.high,
+      playSound: true,
+    );
+
+    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      alarm.id,
+      title,
+      body,
+      scheduledTime,
+      platformChannelSpecifics,
+      uiLocalNotificationDateInterpretation:
+      UILocalNotificationDateInterpretation.absoluteTime,
+      payload: 'notification_payload',
+      androidAllowWhileIdle: true,
+    );
+
+    setState(() {
+      alarms.add(alarm);
+    });
+  }
+
+  Future<void> cancelAlarm(int id) async {
+    await flutterLocalNotificationsPlugin.cancel(id);
+    setState(() {
+      alarms.removeWhere((alarm) => alarm.id == id);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Alarm App'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                final now = DateTime.now();
+                final selectedTime = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.fromDateTime(now),
+                );
+
+                if (selectedTime != null) {
+                  final selectedAlarmTime = DateTime(
+                    now.year,
+                    now.month,
+                    now.day,
+                    selectedTime.hour,
+                    selectedTime.minute,
+                  );
+
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Enter Note'),
+                        content: TextField(
+                          controller: noteController,
+                          decoration: InputDecoration(
+                            hintText: 'Enter your note',
+                          ),
+                        ),
+                        actions: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text('Cancel'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              final alarm = Alarm(
+                                selectedAlarmTime,
+                                noteController.text,
+                                selectedAlarmTime.microsecondsSinceEpoch,
+                              );
+                              scheduleAlarm(alarm);
+                            },
+                            child: Text('Set Alarm'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              },
+              child: Text('Set Alarm'),
+            ),
+            SizedBox(height: 20),
+            Column(
+              children: alarms.map((alarm) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(8),
+                        color: Colors.green,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Alarm Time: ${alarm.time.hour}:${alarm.time.minute}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              'Note: ${alarm.note}',
+                              style: TextStyle(fontSize: 16, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return DismissAlarmDialog(
+                                  alarm: alarm,
+                                  onCancel: () {
+                                    cancelAlarm(alarm.id);
+                                    Navigator.pop(context);
+                                  },
+                                );
+                              },
+                            );
+                          },
+                          child: Text('Dismiss Alarm'),
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.red,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => WorldClockPage()),
+                );
+              },
+              child: Text('World Clock'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+alarm_model.dart
+
+class Alarm {
+  DateTime time;
+  String note;
+  int id;
+
+  Alarm(this.time, this.note, this.id);
+}
+
+
+
+
+
+
+dismiss_alarm_dialog.dart
+
+
+
+import 'package:flutter/material.dart';
+import 'alarm_model.dart'; // Import the Alarm class
+
+class DismissAlarmDialog extends StatelessWidget {
+  final Alarm alarm;
+  final VoidCallback onCancel;
+
+  DismissAlarmDialog({required this.alarm, required this.onCancel});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Alarm'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Note: ${alarm.note}'),
+          ElevatedButton(
+            onPressed: onCancel,
+            style: ElevatedButton.styleFrom(
+              primary: Colors.red,
+            ),
+            child: Text('Dismiss Alarm'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+world_clock_page.dart
+
+
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart' as tz;
+
+void main() {
+  runApp(MaterialApp(home: WorldClockPage()));
+}
+
+class WorldClockPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('World Clock'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CityTimeRow(city: 'USA', timeZone: 'America/New_York'),
+            CityTimeRow(city: 'UK', timeZone: 'Europe/London'),
+            CityTimeRow(city: 'Germany', timeZone: 'Europe/Berlin'),
+            CityTimeRow(city: 'China', timeZone: 'Asia/Shanghai'),
+            CityTimeRow(city: 'Australia', timeZone: 'Australia/Sydney'),
+            CityTimeRow(city: 'Japan', timeZone: 'Asia/Tokyo'),
+            CityTimeRow(city: 'Brazil', timeZone: 'America/Sao_Paulo'),
+            CityTimeRow(city: 'India', timeZone: 'Asia/Kolkata'),
+            CityTimeRow(city: 'South Africa', timeZone: 'Africa/Johannesburg'),
+            CityTimeRow(city: 'Canada', timeZone: 'America/Toronto'),
+            CityTimeRow(city: 'France', timeZone: 'Europe/Paris'),
+            CityTimeRow(city: 'Russia', timeZone: 'Europe/Moscow'),
+            CityTimeRow(city: 'Mexico', timeZone: 'America/Mexico_City'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CityTimeRow extends StatefulWidget {
+  final String city;
+  final String timeZone;
+
+  CityTimeRow({required this.city, required this.timeZone});
+
+  @override
+  _CityTimeRowState createState() => _CityTimeRowState();
+}
+
+class _CityTimeRowState extends State<CityTimeRow> {
+  late tz.Location _location;
+  late String _currentTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _location = tz.getLocation(widget.timeZone);
+    _updateTime();
+  }
+
+  void _updateTime() {
+    final now = tz.TZDateTime.now(_location);
+    final formattedTime = DateFormat('hh:mm:ss a').format(now);
+    setState(() {
+      _currentTime = formattedTime;
+    });
+    Future.delayed(Duration(seconds: 1), _updateTime);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.teal,
+      padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            widget.city,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            _currentTime,
+            style: TextStyle(fontSize: 18, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
