@@ -1,0 +1,193 @@
+10.1.0.0/16
+
+B1-R1 = 8000 = 8192 = 2^13 = 19
+10.1.0.0/19 - 10.1.31.255/19
+
+10.1.0.0/21
+10.1.8.0/21
+10.1.16.0/21
+10.1.24.0/21
+
+
+
+
+
+======================================
+B2-R1 = 4000 = 32 - 12 = 20
+10.1.32.0/20
+10.1.47.255/20
+
+10.1.32.0/22
+10.1.36.0/22
+10.1.40.0/22
+10.1.44.0/22
+
+
+===========================
+B3-R1 = 2000 = 21
+10.1.48.0/21
+10.1.55.255/21
+
+
+10.1.48.0/23
+10.1.50.0/23
+10.1.52.0/23
+10.1.54.0/23
+
+***********************
+
+10.1.64.0/28
+
+10.1.64.0/30
+10.1.64.4/30
+10.1.64.8/30
+10.1.64.12/30
+================================
+
+B3-R1
+-----------------------------
+
+
+en
+conf t
+
+hostname B3-R1
+
+line console 0
+pass cisco
+login
+
+line vty 0
+pass cisco
+login
+
+exit
+
+int fa0/0
+ip add 10.1.48.1 255.255.254.0
+no shut
+
+int fa0/1
+ip add 10.1.50.1 255.255.254.0
+no shut
+
+int fa1/0
+ip add 10.1.52.1 255.255.254.0
+no shut
+
+int fa1/1
+ip add 10.1.54.1 255.255.254.0
+no shut
+
+int se0/0/0
+ip hello-interval eigrp 1 30
+ip add 10.1.64.10 255.255.255.252
+ip summary-address eigrp 1 10.1.48.0 255.255.248.0
+no shut
+
+
+exit
+
+ip route 0.0.0.0 0.0.0.0 se0/0/0
+
+
+
+router eigrp 1
+no auto-summary
+network 10.1.48.0
+passive-interface fa0/0
+passive-interface fa1/0
+passive-interface fa0/1
+passive-interface fa1/1
+
+
+===================================
+R1
+
+
+hostname R1
+
+int se0/0/0
+clock rate 64000
+ip add 10.1.64.1 255.255.255.252
+no shut
+
+int se0/0/1
+ip add 10.1.64.5 255.255.255.252
+no shut
+clock rate 64000
+
+int se0/1/0
+ip add 10.1.64.9 255.255.255.252
+no shut
+clock rate 64000
+exit
+
+ip route 0.0.0.0 0.0.0.0 se0/1/1
+
+router eigrp 1
+no auto-summary
+network 10.1.64.0
+passive-interface se0/1/1
+
+
+=======================
+
+B2-R1
+
+
+en
+conf t
+
+
+router rip
+version 2
+network 172.20.0.0
+
+no auto-summary
+passive-interface fa0/0
+passive-interface fa1/0
+passive-interface fa0/1
+passive-interface fa1/1
+
+============================
+
+R2
+
+
+
+
+ip route 0.0.0.0 0.0.0.0 se0/1/1
+
+router rip
+version 2
+network 172.20.0.0
+default-information originate
+passive-interface se0/1/1
+
+
+
+
+ISP-R1 (pass = `cisco` then `class`)
+
+
+conf t
+
+ip route 172.20.0.0 255.255.0.0 s0/0/1
+ip route 10.1.0.0 255.255.0.0 s0/0/0
+
+
+exit
+
+copy running-config startup-config
+
+====================================================
+ISP-R2 (pass = `cisco` then `class`)
+
+
+conf t
+
+ip route 172.20.0.0 255.255.0.0 s0/0/0
+ip route 10.1.0.0 255.255.0.0 s0/0/1
+
+

@@ -1,0 +1,119 @@
+en
+conf t
+h HQ
+
+int Fa0/0
+ip ad 172.20.0.1 255.255.224.0
+no shut
+
+int S0/0/0
+ip ad 172.20.56.1 255.255.255.252
+b 128
+no shut
+
+int S0/0/1
+ip ad 172.20.56.5 255.255.255.252
+b 256
+no sh
+ex
+
+router ospf 1
+net 172.20.0.0 0.0.31
+net 172.20.0.0 0.0.31.0 area 0
+net 172.20.0.0 0.0.31.255 area 0
+net 172.20.56.0 0.0.0.3 area 0
+net 172.20.56.4 0.0.0.3 area 0
+p Fa0/0
+exit
+
+int lo0
+ip ad 10.10.10.1 255.255.255.252
+shut
+
+int lo1
+ip add 10.10.10.1 255.255.255.252
+exit
+
+ip route 0.0.0.0 0.0.0.0 lo1
+
+int S0/0/1
+cl 64000
+int S0/0/1
+clock 64000
+cl r 64000
+ex
+r o 1
+d o
+
+de o
+p i lo1
+
+r o 1
+
+p lo1
+end
+copy run start
+
+en
+conf t
+h Branch1
+int Fa0/0
+ip ad 172.20.32.1 255.255.240.0
+no shut
+
+int S0/0/0
+clo r 64000
+int S0/0/0
+cl r 64000
+ip ad 172.20.56.2 255.255.255.252
+b 128
+no shut
+
+
+int S0/0/1
+ip ad 172.20.56.9 255.255.255.252
+b 64
+no shut
+ip ad 172.20.56.9 255.255.255.252
+ex
+
+r o 1
+net 172.20.32.0 0.0.15.255 area 0
+net 172.20.56.2 0.0.0.3 area 0
+net 172.20.56.9 0.0.0.3 area 0
+
+p Fa0/0
+end
+copy run start
+
+en
+conf 
+h Branch2
+int Fa0/0
+ip ad 172.20.48.1 255.255.248.0
+no shut
+
+int S0/0/0
+cl r 64000
+b 64
+ip ad 172.20.48.1 255.255.248.0
+ip ad 172.20.56.1 255.255.255.252
+no shut
+
+int S0/0/0
+ip ad 172.20.56.10 255.255.255.252
+
+int S0/0/1
+ip ad 172.20.56.6 255.255.255.252
+b 256
+no shut
+ex
+
+r o 1
+net 172.20.48.0 0.0.7.255 area 0
+net 172.20.56.8 0.0.0.3 area 0
+net 172.20.56.8 0.0.0.3 area 0
+net 172.20.56.4 0.0.0.3 area 0
+p Fa0/0
+end
+copy run start

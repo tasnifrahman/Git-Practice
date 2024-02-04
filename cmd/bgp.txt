@@ -1,0 +1,60 @@
+R1#conf t
+R1(config)#do sh ip route
+R1>en
+R1(config)#router bgp 65001
+R1(config-router)#neighbor 8.8.8.2 remote-as 65002
+R1(config-router)#neighbor 12.0.0.2 remote-as 65003
+R1(config-router)#network 1.1.1.1 mask 255.255.255.255
+R1(config-router)#network 8.8.8.0 mask 255.255.255.0
+R1(config-router)#network 12.0.0.0 mask 255.255.255.0
+R1(config-router)#exit
+R1(config)#do sh ip bgp summary
+R1(config)#do sh ip bgp neighbor
+
+
+
+R2>en
+R2#conf t
+R2(config)#do sh ip route
+R2(config)#router bgp 65002
+R2(config-router)#neighbor 8.8.8.1 remote-as 65001
+R2(config-router)#neighbor 8.8.4.2 remote-as 65004
+R2(config-router)#neighbor 8.8.7.2 remote-as 65004
+R2(config-router)#network 2.2.2.2 mask 255.255.255.255
+R2(config-router)#network 8.8.4.0 mask 255.255.255.0
+R2(config-router)#network 8.8.7.0 mask 255.255.255.0
+R2(config-router)#network 8.8.8.0 mask 255.255.255.0
+R2(config-router)#ex
+R2(config)#do sh ip bgp neighbor
+
+
+
+R4>en
+R4#conf t
+R4(config)#do sh ip route
+R4(config)#router bgp 65004
+R4(config-router)#neighbor 8.8.8.1 remote-as 65002
+R4(config-router)#no neighbor 8.8.8.1 remote-as 65002
+R4(config-router)#neighbor 8.8.4.1 remote-as 65002
+R4(config-router)#neighbor 8.8.7.1 remote-as 65002
+R4(config-router)#neighbor 12.1.1.1 remote-as 65003
+R4(config-router)#network 4.4.4.4 mask 255.255.255.255
+R4(config-router)#network 8.8.4.0 mask 255.255.255.0
+R4(config-router)#network 8.8.7.0 mask 255.255.255.0
+R4(config-router)#network 12.1.1.0 mask 255.255.255.0
+R4(config-router)#ex
+R4(config)#do sh ip bgp neighbor
+
+
+
+R3>en
+R3#conf t
+R3(config)#do sh ip route
+R3(config)#router bgp 65003
+R3(config-router)#neighbor 12.0.0.1 remote-as 65001
+R3(config-router)#neighbor 12.1.1.2 remote-as 65004
+R3(config-router)#network 3.3.3.3 mask 255.255.255.255
+R3(config-router)#network 12.0.0.0 mask 255.255.255.0
+R3(config-router)#network 12.1.1.0 mask 255.255.255.0
+R3(config-router)#ex
+R3(config)#do sh ip bgp neighbor

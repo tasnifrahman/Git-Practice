@@ -1,0 +1,128 @@
+Switch
+------------------------------------
+
+conf t
+vlan 10
+name Sales
+ex
+vlan 20
+ex
+
+interface fastethernet 0/1
+vlan 10
+exit
+
+interface fastethernet 0/2
+vlan 20
+exit
+
+
+interface fastethernet 0/1
+switchport mode access
+switchport access vlan 10
+
+
+interface fastethernet 0/2
+switchport mode access
+switchport access vlan 20
+
+
+
+interface gigabitEthernet 0/1
+switchport mode trunk
+exit
+
+
+
+
+Router
+---------------------------
+
+int g0/0.10
+encapsulation dot1Q 10
+ip address 192.168.90.1 255.255.255.0
+exit
+
+int g0/0.20
+encapsulation dot1Q 20
+ip address 192.168.91.1 255.255.255.0
+exit
+
+
+int g0/0.30
+encapsulation dot1Q 30
+ip address 192.168.92.1 255.255.255.0
+exit
+
+
+
+
+
+======================================
+6.4.1.2 Packet Tracer - Skills Integration Challenge
+=====================================
+R1
+-------------------------------
+
+int g0/0.10
+en
+encapsulation d
+encapsulation dot1Q 10
+ip add 172.31.10.1 255.255.255.0
+
+int g0/0.20
+encapsulation dot1Q 20
+ip add 172.31.20.1 255.255.255.0
+
+int g0/0.30
+encapsulation dot1Q 30
+ip add 172.31.30.1 255.255.255.0
+
+int g0/0.88
+encapsulation dot1Q 88
+ip add 172.31.88.1 255.255.255.0
+
+int g0/0.99
+encapsulation dot1Q 99 native
+ip add 172.31.99.1 255.255.255.0
+
+exit
+
+int g0/0
+no shut
+
+
+ip route 0.0.0.0 0.0.0.0 s0/0/0
+
+
+
+HQ
+---------------------------
+
+en
+conf t
+
+
+ip route 172.31.10.0 255.255.255.0 se0/0/0
+
+ip route 172.31.20.0 255.255.255.0 se0/0/0
+
+ip route 172.31.30.0 255.255.255.0 se0/0/0
+
+ip route 172.31.88.0 255.255.255.0 se0/0/0
+
+ip route 209.165.200.0 255.255.255.224 s0/1/1 10
+
+ip route 209.165.200.0 255.255.255.224 s0/1/0
+
+
+Switch1
+========================
+
+
+int g0/1
+switchport mode trunk
+switchport trunk native vlan 99
+
+
+
