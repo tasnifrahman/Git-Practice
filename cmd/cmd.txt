@@ -1,0 +1,300 @@
+Access layer switch (main campus)
+--------------------------------------------
+
+int range fa0/1-24
+switchport mode access
+switchport access vlan 10
+
+int range fa0/1-24
+switchport mode access
+switchport access vlan 20
+
+
+int range fa0/1-24
+switchport mode access
+switchport access vlan 30
+
+
+int range fa0/1-24
+switchport mode access
+switchport access vlan 40
+
+
+int range fa0/1-24
+switchport mode access
+switchport access vlan 50
+
+
+
+int range fa0/1-24
+switchport mode access
+switchport access vlan 60
+
+
+
+int range fa0/1-24
+switchport mode access
+switchport access vlan 70
+
+
+
+int range fa0/1-24
+switchport mode access
+switchport access vlan 80
+
+
+Access layer switch (Branch campus)
+-----------------------------------------------
+int range fa0/1-24
+switchport mode access
+switchport access vlan 90
+
+
+
+int range fa0/1-24
+switchport mode access
+switchport access vlan 100
+
+
+__________________________________
+
+
+Distribution layer switch (main campus)
+--------------------------------------------------
+
+int g1/0/2
+switchport mode access
+switchport access vlan 10
+exit
+
+int g1/0/3
+switchport mode access
+switchport access vlan 20
+exit
+
+
+int g1/0/4
+switchport mode access
+switchport access vlan 30
+exit
+
+int g1/0/5
+switchport mode access
+switchport access vlan 40
+exit
+
+int g1/0/6
+switchport mode access
+switchport access vlan 50
+exit
+
+int g1/0/7
+switchport mode access
+switchport access vlan 60
+exit
+
+
+int g1/0/8
+switchport mode access
+switchport access vlan 70
+exit
+
+int g1/0/9
+switchport mode access
+switchport access vlan 80
+exit
+
+
+
+int g1/0/1
+switchport mode trunk
+
+-------------------------------
+
+Distribution layer switch (Branch campus)
+----------------------------------------------------
+
+
+int g1/0/2
+switchport mode access
+switchport access vlan 90
+exit
+
+
+int g1/0/3
+switchport mode access
+switchport access vlan 100
+exit
+
+int g1/0/1
+switchport trunk encapsulation dot1q
+switchport mode trunk
+
+===========================
+
+Branch router
+-----------------
+
+
+router rip
+version 2
+
+network 192.168.98.0
+network 192.168.99.0
+network 10.10.10.0
+exit
+
+
+
+
+
+=======================
+
+
+main campus router
+-----------------------
+
+
+int g0/0.10
+encapsulation dot1Q 10
+ip address 192.168.90.1 255.255.255.0
+exit
+
+int g0/0.20
+encapsulation dot1Q 20
+ip address 192.168.91.1 255.255.255.0
+exit
+
+
+int g0/0.30
+encapsulation dot1Q 30
+ip address 192.168.92.1 255.255.255.0
+exit
+
+
+int g0/0.40
+encapsulation dot1Q 40
+ip address 192.168.93.1 255.255.255.0
+exit
+
+
+int g0/0.50
+encapsulation dot1Q 50
+ip address 192.168.94.1 255.255.255.0
+exit
+
+
+int g0/0.60
+encapsulation dot1Q 60
+ip address 192.168.95.1 255.255.255.0
+exit
+
+
+int g0/0.70
+encapsulation dot1Q 70
+ip address 192.168.96.1 255.255.255.0
+exit
+
+
+int g0/0.80
+encapsulation dot1Q 80
+ip address 192.168.97.1 255.255.255.0
+exit
+
+===========================
+
+
+
+service dhcp
+
+
+ip dhcp pool admin-pool
+network 192.168.90.0 255.255.255.0
+default-router 192.168.90.1
+dns-server 192.168.90.1
+exit
+
+
+
+ip dhcp pool hr-pool
+network 192.168.91.0 255.255.255.0
+default-router 192.168.91.1
+dns-server 192.168.91.1
+exit
+
+
+ip dhcp pool finance-pool
+network 192.168.92.0 255.255.255.0
+default-router 192.168.92.1
+dns-server 192.168.92.1
+exit
+
+
+
+ip dhcp pool business-pool
+network 192.168.93.0 255.255.255.0
+default-router 192.168.93.1
+dns-server 192.168.93.1
+exit
+
+
+
+ip dhcp pool EC-pool
+network 192.168.94.0 255.255.255.0
+default-router 192.168.94.1
+dns-server 192.168.94.1
+exit
+
+
+ip dhcp pool AD-pool
+network 192.168.95.0 255.255.255.0
+default-router 192.168.95.1
+dns-server 192.168.95.1
+exit
+
+
+ip dhcp pool stu-pool
+network 192.168.96.0 255.255.255.0
+default-router 192.168.96.1
+dns-server 192.168.96.1
+exit
+
+
+
+ip dhcp pool IT-pool
+network 192.168.97.0 255.255.255.0
+default-router 192.168.97.1
+dns-server 192.168.97.1
+exit
+
+
+
+router rip
+version 2
+
+network 10.10.10.0
+network 10.10.10.4
+network 192.168.90.0
+network 192.168.91.0
+network 192.168.92.0
+network 192.168.93.0
+network 192.168.94.0
+network 192.168.95.0
+network 192.168.96.0
+network 192.168.97.0
+exit
+
+
+
+
+
+=========================
+cloud router
+......................................
+
+router rip
+version 2
+network 20.0.0.0
+network 10.10.10.4
+exit
+
